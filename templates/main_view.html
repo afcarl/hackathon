@@ -1,0 +1,5 @@
+{% if current_user.is_authenticated() %}
+  Hi, you are logged in as {{ current_user.username }}!
+{% endif %}
+
+Main page

@@ -1,0 +1,16 @@
+{% from "_formhelpers.html" import render_field %}
+
+
+{% if current_user.is_authenticated() %}
+  Hi, you are logged in as {{ current_user.username }}!
+{% endif %}
+
+
+<form method=post action="{{url_for("project_create")}}">
+  <dl>
+    {{ render_field(form.name) }}
+    {{ render_field(form.description) }}
+    {{ render_field(form.tags_string) }}
+  </dl>
+  <p><input type=submit value=Register>
+</form>

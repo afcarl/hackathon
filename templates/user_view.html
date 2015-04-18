@@ -1,0 +1,7 @@
+{% if current_user.is_authenticated() %}
+  Hi, you are logged in as {{ current_user.name }}!
+{% endif %}
+
+Username: {{user.username}}
+email: {{user.email}}
+git_hub_link: {{user.github_url}}
