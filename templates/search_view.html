@@ -1,0 +1,116 @@
+<html>
+<head>
+<meta charset="utf-8">
+<title>example</title>
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.css">
+<head>
+
+<body>
+
+
+
+<div class="container">
+
+    <h2><a href="/">Project proposal search</a></h2>
+
+
+    <form role="form">
+        <div class="form-group">
+            <input class="form-control" id="searchinput" type="text" placeholder="Search City..." />
+        </div>
+        <div id="searchlist" class="list-group">
+            <!-- <a class="list-group-item" href="http://osm.org/#map=12/-29.11761/59.65834"><span>Avellaneda</span></a>
+            <a class="list-group-item" href="http://osm.org/#map=12/-36.77698/59.85854"><span>Azul</span></a>
+            <a class="list-group-item" href="http://osm.org/#map=12/40.70583/19.95222"><span>Berat</span></a>
+            <a class="list-group-item" href="http://osm.org/#map=12/41.61028/20.00889"><span>Burrel</span></a>
+            <a class="list-group-item" href="http://osm.org/#map=12/-5.55/12.2"><span>Cabinda</span></a>
+            <a class="list-group-item" href="http://osm.org/#map=12/-13.78333/14.68333"><span>Caluquembe</span></a> -->
+            <!-- FILLED DYNAMICALLY -->
+        </div>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-2.1.3.js"></script>
+
+<script>
+
+
+
+$('#searchinput').keyup(function(event){
+    
+    
+    var value = $(this).val() // get the current value of the input field.
+    console.log(value)
+    
+    var list = $("#searchlist")
+    
+    var query = {
+      "query": {
+          "multi_match": {
+              "query": value,
+              "fields": [
+                  "tags_string",
+                  "name"
+              ]
+          }
+      }
+    };
+    
+    //list.empty()
+    
+    $.ajax({
+       // url: this.props.url + this.props.keyword,
+       type: "POST",
+       url: 'http://127.0.0.1:9200/github_project/project_doc/_search',
+       dataType: 'json',
+       data: JSON.stringify(query),
+       success: function(data) {
+         //this.setState({data: data.hits.hits});
+         
+         result_list = data.hits.hits
+         
+         list.empty()
+         
+         console.log(result_list)
+         
+         var buffer = ""
+         
+         for(var element of result_list){
+            
+            list = $(list)
+            
+            console.log('result')
+            content = element._source
+            project_id = content.id
+            name = content.name
+            tags_string = content.tags_string
+            tag_array = tags_string.split(" ")
+            tags_string = ""
+            
+            for(var tag of tag_array){
+                
+                tags_string += '<span class="label label-primary">' + tag + '</span>'
+            }
+            
+            buffer += '<a class="list-group-item" href="/project/' +
+                        project_id + 
+                        '">' + name + tags_string + '</a>&nbsp;'
+            
+         }
+         
+         list.append(buffer);
+         
+         console.log(buffer)
+         
+       }
+    });
+    
+    
+});
+    
+
+</script>
+</body>
+</html>

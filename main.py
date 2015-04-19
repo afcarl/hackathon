@@ -7,6 +7,10 @@ from wtforms.ext.sqlalchemy.orm import model_form
 from wtforms import form, fields, validators
 from flask import render_template, request, url_for, redirect, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from elasticsearch import Elasticsearch
+import datetime
+
+
 
 app = flask.Flask(__name__, static_folder='./public/', static_url_path='')
 
@@ -14,6 +18,8 @@ app.config['SECRET_KEY'] = 'test'
 app.config['SQLALCHEMY_ECHO'] = True
 app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/dan/University/projects/hackathon/database.db'
+
+es_hadler = Elasticsearch()
 
 db = SQLAlchemy(app)
 
@@ -57,14 +63,18 @@ class User(db.Model):
 
 class ProjectProposal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), unique=True)
-    description = db.Column(db.String(120), unique=True)
+    name = db.Column(db.String(80))
+    description = db.Column(db.String(120))
     tags_string = db.Column(db.String(120))
+    quiz_date = db.Column(db.DateTime)
     
     # You can access the user who created it through the 'author' property.
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     
-    def __init__(self, author, name="", description="", tags_string=""):
+    def __init__(self, author, name="", description="", tags_string="", date=None):
+        if date is None:
+            date = datetime.datetime.utcnow()
+        self.date = date
         self.name = name
         self.description = description
         self.tags_string = tags_string
@@ -108,6 +118,14 @@ def load_user(userid):
 def index():
     return render_template('main_view.html')
 
+@app.route('/search')
+def search():
+    return render_template('search_view.html')
+
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard_view.html')
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm(request.form)
@@ -116,7 +134,7 @@ def login():
         user = form.get_user()
         login_user(user)
         flash("Logged in successfully.")
-        return redirect(request.args.get("next") or url_for("index"))
+        return redirect(url_for("search"))
     return render_template("login.html", form=form)
 
 @app.route("/logout")
